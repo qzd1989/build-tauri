@@ -11,6 +11,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -48,6 +53,25 @@ jobs:
           echo "Checking build output:"
           dir ./src-tauri/target/release
 
+      - name: Venv init
+        run: |
+          cd ./src-tauri
+          python -m venv .venv
+          dir .venv
+          dir .venv/bin
+          pip install -U pip maturin
+          pip freeze
+
+      - name: maturin build
+        run: |
+          cd ./src-tauri
+          maturin build --release
+          dir ./target/wheels
+
+      - name: Copy wheels
+        run: |
+          copy "./src-tauri/target/*.whl" "./src-tauri/target/release"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -55,3 +79,4 @@ jobs:
           path: |
             ./src-tauri/target/release/*.exe
             ./src-tauri/target/release/*.dll
+            ./src-tauri/target/release/*.whl
